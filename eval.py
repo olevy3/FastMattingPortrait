@@ -29,16 +29,17 @@ grayscale = rgb2gray(output)
 io.imsave("grayscale.png", grayscale)
 
 thresh = threshold_otsu(grayscale)
-thresholded = (grayscale <= thresh).astype(np.float64)
+thresholded = (grayscale >= (thresh * 0.95)).astype(np.float64)
 io.imsave("thresh.png", thresholded)
 
 product = output * inputImg
 io.imsave("product.png", product)
 
-thresh = threshold_otsu(product)
-productThresholded = (product >= thresh).astype(np.float64)
+# thresh = threshold_otsu(product)
+productThresholded = product * np.reshape(thresholded, (640, 480, 1)) # (product >= thresh).astype(np.float64)
 io.imsave("productT.png", productThresholded)
 
+io.imsave("idk.png", product * np.reshape(rgb2gray(product), (640, 480, 1)))
 # criterion = nn.MSELoss()
 # expectedImg = data.getImg(sys.argv[1].replace("input", "training"))
 # expected = Variable(torch.tensor(np.reshape(expectedImg, (1, 640, 480, 3))))
