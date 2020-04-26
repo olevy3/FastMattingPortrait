@@ -6,6 +6,8 @@ class MattNet(nn.Module):
     def __init__(self):
         super(MattNet, self).__init__()
 
+        self.relu = nn.ReLU(inplace=True)
+
         self.maxpool1 = nn.MaxPool2d(kernel_size=2, stride=2)
         self.conv1 = nn.Conv2d(
             in_channels=3,
@@ -14,7 +16,7 @@ class MattNet(nn.Module):
             stride=2,
             padding=1,
             dilation=1)
-        self.relu = nn.ReLU(inplace=True)
+        self.bn1 = nn.BatchNorm2d(13)
 
         self.conv2 = nn.Conv2d(
             in_channels=16,
@@ -22,30 +24,35 @@ class MattNet(nn.Module):
             kernel_size=(3, 3),
             padding=2,
             dilation=2)
+        self.bn2 = nn.BatchNorm2d(16)
         self.conv3 = nn.Conv2d(
             in_channels=32,
             out_channels=16,
             kernel_size=(3, 3),
             padding=4,
             dilation=4)
+        self.bn3 = nn.BatchNorm2d(16)
         self.conv4 = nn.Conv2d(
             in_channels=48,
             out_channels=16,
             kernel_size=(3, 3),
             padding=6,
             dilation=6)
+        self.bn4 = nn.BatchNorm2d(16)
         self.conv5 = nn.Conv2d(
             in_channels=64,
             out_channels=16,
             kernel_size=(3, 3),
             padding=8,
             dilation=8)
+        self.bn5 = nn.BatchNorm2d(16)
         self.conv6 = nn.Conv2d(
             in_channels=64,
             out_channels=2,
             kernel_size=(3, 3),
             padding=1,
             dilation=1)
+        self.bn6 = nn.BatchNorm2d(2)
         self.interp = nn.UpsamplingBilinear2d(scale_factor=2)
 
         # feather
@@ -58,7 +65,7 @@ class MattNet(nn.Module):
             dilation=1,
             groups=1,
             bias=True)
-        self.bn1 = nn.BatchNorm2d(8)
+        self.bnF1 = nn.BatchNorm2d(8)
         self.convF2 = nn.Conv2d(
             in_channels=8,
             out_channels=3,
@@ -119,23 +126,23 @@ class MattNet(nn.Module):
               conv ------------+
                (j)
         """
-        a = self.relu(self.conv1(x))
+        a = self.relu(self.bn1(self.conv1(x)))
         b = self.maxpool1(x)
         c = torch.cat((a, b), 1)
 
-        d = self.relu(self.conv2(c))
+        d = self.relu(self.bn2(self.conv2(c)))
         e = torch.cat((c, d), 1)
 
-        f = self.relu(self.conv3(e))
+        f = self.relu(self.bn3(self.conv3(e)))
         g = torch.cat((e, f), 1)
 
-        h = self.relu(self.conv4(g))
+        h = self.relu(self.bn4(self.conv4(g)))
         i = torch.cat((g, h), 1)
 
-        j = self.relu(self.conv5(i))
+        j = self.relu(self.bn5(self.conv5(i)))
 
         k = torch.cat((d, f ,h, j), 1)
-        l = self.relu(self.conv6(k))
+        l = self.relu(self.bn6(self.conv6(k)))
         output = self.interp(l)
 
         """
@@ -152,7 +159,7 @@ class MattNet(nn.Module):
         II = I * I
         featherInput = torch.cat((I, ISfg, II, output), 1)
         fa = self.convF1(featherInput)
-        fb = self.bn1(fa)
+        fb = self.bnF1(fa)
         fc = self.relu(fb)
         fd = self.convF2(fc)
 
