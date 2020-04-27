@@ -1,0 +1,4 @@
+input/
+training/
+*.pth
+__pycache__/
